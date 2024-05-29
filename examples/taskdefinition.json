@@ -1,0 +1,57 @@
+{
+  "family": "firelens-example-otel",
+  "taskRoleArn": "Your ecsTaskExecutionRole Arn, only needed for forwarding the sidecar logs to Cloudwatch for debugging purposes",
+  "executionRoleArn": "Your ecsTaskExecutionRole Arn, only needed for forwarding the sidecar logs to Cloudwatch for debugging purposes",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "image": "chentex/random-logger:latest",
+      "portMappings": [],
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awsfirelens"
+      }
+    },
+    {
+      "name": "otel-sidecar",
+      "image": "public.ecr.aws/h9w3r7r7/aws-ecs-opentelemetry-sidecar:latest",
+      "essential": true,
+      "secrets": [
+        {
+          "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/PARAMETER_NAME",
+          "name": "HYPERDX_API_KEY"
+        }
+      ],
+      "environment": [
+        {
+          "name": "OTEL_RESOURCE_ATTRIBUTES",
+          "value": "service.name=my_service"
+        },
+        {
+          "name": "DEBUG_GENERATED_OTEL_CONFIG",
+          "value": "true"
+        },
+        {
+          "name": "OTEL_ECS_CONTAINER_METRICS_DISABLED",
+          "value": "false"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-create-group": "true",
+          "awslogs-group": "/ecs/firelens-example-otel",
+          "awslogs-region": "us-west-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "firelensConfiguration": {
+        "type": "fluentbit"
+      }
+    }
+  ],
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024"
+}

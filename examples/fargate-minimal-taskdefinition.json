@@ -1,0 +1,31 @@
+{
+  "family": "firelens-example-otel",
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "image": "chentex/random-logger:latest",
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awsfirelens"
+      }
+    },
+    {
+      "name": "otel-sidecar",
+      "image": "public.ecr.aws/h9w3r7r7/aws-ecs-opentelemetry-sidecar:latest",
+      "essential": true,
+      "environment": [
+        {
+          "name": "HYPERDX_API_KEY",
+          "value": "YOUR_HYPERDX_API_KEY"
+        }
+      ],
+      "firelensConfiguration": {
+        "type": "fluentbit"
+      }
+    }
+  ],
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024"
+}

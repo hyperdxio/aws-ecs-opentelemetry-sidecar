@@ -1,0 +1,121 @@
+#! This file is processed by ytt: https://carvel.dev/ytt/
+#@ load("@ytt:data", "data")
+
+receivers:
+  #@ if data.values.otel_ecs_container_metrics_disabled != True:
+  awsecscontainermetrics:
+    collection_interval: 60s
+  #@ end
+  fluentforward/socket:
+    #! ECS will send logs to this socket
+    endpoint: unix:///var/run/fluent.sock
+  fluentforward/tcp:
+    #! ECS will send logs to this socket
+    endpoint: 0.0.0.0:24284
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  otlphttp:
+    #@ if data.values.otel_exporter_otlp_endpoint != "":
+    endpoint: ${env:OTEL_EXPORTER_OTLP_ENDPOINT}
+    #@ else:
+    endpoint: 'https://in-otel.hyperdx.io'
+    #@ end
+    headers:
+      authorization: ${env:HYPERDX_API_KEY}
+    compression: gzip
+
+extensions:
+  health_check:
+  pprof:
+  zpages:
+
+processors:
+  batch:
+  resourcedetection/ecs:
+    detectors: [env, ecs]
+    timeout: 2s
+    override: false
+  resource/service_name:
+    attributes:
+      - key: service.name
+        from_attribute: aws.ecs.task.family
+        action: insert
+  transform/firelens:
+    log_statements:
+      - context: log
+        statements:
+          #! parse json logs
+          - merge_maps(cache, ParseJSON(body), "insert") where IsMatch(body,
+            "^\\{")
+          #! set message
+          - set(body, cache["message"]) where cache["message"] != nil
+
+          #! set trace/span id
+          - set(trace_id.string, cache["trace_id"]) where cache["trace_id"] !=
+            nil
+          - set(span_id.string, cache["span_id"]) where cache["span_id"] != nil
+
+          #! set severity when available
+          - set(severity_number, SEVERITY_NUMBER_INFO) where
+            IsMatch(cache["level"], "(?i)info")
+          - set(severity_number, SEVERITY_NUMBER_WARN) where
+            IsMatch(cache["level"], "(?i)warn")
+          - set(severity_number, SEVERITY_NUMBER_ERROR) where
+            IsMatch(cache["level"], "(?i)err")
+          - set(severity_number, SEVERITY_NUMBER_DEBUG) where
+            IsMatch(cache["level"], "(?i)debug")
+          - set(severity_number, SEVERITY_NUMBER_TRACE) where
+            IsMatch(cache["level"], "(?i)trace")
+          - set(severity_number, cache["severity_number"])  where
+            cache["severity_number"] != nil
+
+          - delete_matching_keys(cache,
+            "^(message|trace_id|span_id|severity_number)$")
+
+          - merge_maps(attributes,cache, "insert")
+
+service:
+  extensions:
+    - health_check
+    - pprof
+    - zpages
+  pipelines:
+    logs:
+      receivers:
+        - fluentforward/socket
+        - fluentforward/tcp
+        - otlp
+      processors:
+        - batch
+        - transform/firelens
+        - resourcedetection/ecs
+        - resource/service_name
+      exporters:
+        - otlphttp
+    metrics:
+      receivers:
+        - otlp
+        #@ if data.values.otel_ecs_container_metrics_disabled != True:
+        - awsecscontainermetrics
+        #@ end
+      processors:
+        - batch
+        - resourcedetection/ecs
+        - resource/service_name
+      exporters:
+        - otlphttp
+    traces:
+      receivers:
+        - otlp
+      processors:
+        - batch
+        - resourcedetection/ecs
+        - resource/service_name
+      exporters:
+        - otlphttp
