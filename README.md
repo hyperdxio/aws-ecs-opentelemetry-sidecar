@@ -30,7 +30,7 @@ Task definition example:
     },
     {
       "name": "otel-sidecar",
-      "image": "public.ecr.aws/h9w3r7r7/aws-ecs-opentelemetry-sidecar:latest",
+      "image": "public.ecr.aws/hyperdx/aws-ecs-opentelemetry-sidecar:latest",
       "essential": true,
       "environment": [
         {

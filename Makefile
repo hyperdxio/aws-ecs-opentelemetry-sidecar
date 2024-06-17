@@ -1,6 +1,6 @@
 BUILD_PLATFORMS = linux/arm64,linux/amd64
 TAG = 1.0.0
-REPO = public.ecr.aws/h9w3r7r7
+REPO = public.ecr.aws/hyperdx
 IMAGE_NAME = aws-ecs-opentelemetry-sidecar
 
 .PHONY: build
