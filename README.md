@@ -76,7 +76,7 @@ To disable the default `service.name` being populated with the ECS task, you can
 set `PROCESSOR_RESOURCE_SERVICE_NAME_DISABLED` to `true`.
 
 For advanced configuration you can pass in a custom OpenTelemetry collector
-config via the `CUSTOM_OTEL_CONFIG` environment variable. This config will be
+config via the `MERGED_OTEL_CONFIG` environment variable. This config will be
 merged with the default config.
 
 To debug the generated configuration, set the `DEBUG_GENERATED_OTEL_CONFIG`

@@ -8,10 +8,9 @@ if [ "$DEBUG_GENERATED_OTEL_CONFIG" = true ]; then
   echo "$YTT_GENERATED_OTEL_CONFIG_OUTPUT"
 fi
 
-# If CUSTOM_OTEL_CONFIG is set, use that instead of the generated config
-if [ -n "$CUSTOM_OTEL_CONFIG" ]; then
-  echo "Using CUSTOM_OTEL_CONFIG"
-  /otelcol-contrib --config=env:YTT_GENERATED_OTEL_CONFIG_OUTPUT --config=env:CUSTOM_OTEL_CONFIG
+if [ -n "$MERGED_OTEL_CONFIG" ]; then
+  echo "Using MERGED_OTEL_CONFIG"
+  /otelcol-contrib --config=env:YTT_GENERATED_OTEL_CONFIG_OUTPUT --config=env:MERGED_OTEL_CONFIG
 else
   /otelcol-contrib --config=env:YTT_GENERATED_OTEL_CONFIG_OUTPUT
 fi

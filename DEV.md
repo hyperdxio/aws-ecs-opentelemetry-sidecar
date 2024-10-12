@@ -15,7 +15,7 @@ docker run \
   -e DEBUG_GENERATED_OTEL_CONFIG=true \
   -e PROCESSOR_RESOURCE_SERVICE_NAME_DISABLED=true \
   -e OTEL_ECS_CONTAINER_METRICS_DISABLED=true \
-  -e CUSTOM_OTEL_CONFIG='{"processors":{"resource":{"attributes":{"service.name":"my_service"}}}}' \
+  -e MERGED_OTEL_CONFIG='{"receivers": {"prometheus": {"config": {"global": {"scrape_interval": "15s"}}}}}' \
   <image_here>
 ```
 
