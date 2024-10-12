@@ -41,11 +41,13 @@ processors:
     detectors: [env, ecs]
     timeout: 2s
     override: false
+  #@ if data.values.processor_resource_service_name_disabled != True:
   resource/service_name:
     attributes:
       - key: service.name
         from_attribute: aws.ecs.task.family
         action: insert
+  #@ end
   transform/firelens:
     log_statements:
       - context: log
@@ -95,7 +97,9 @@ service:
         - batch
         - transform/firelens
         - resourcedetection/ecs
+        #@ if data.values.processor_resource_service_name_disabled != True:
         - resource/service_name
+        #@ end
       exporters:
         - otlphttp
     metrics:
@@ -107,7 +111,9 @@ service:
       processors:
         - batch
         - resourcedetection/ecs
+        #@ if data.values.processor_resource_service_name_disabled != True:
         - resource/service_name
+        #@ end
       exporters:
         - otlphttp
     traces:
@@ -116,6 +122,8 @@ service:
       processors:
         - batch
         - resourcedetection/ecs
+        #@ if data.values.processor_resource_service_name_disabled != True:
         - resource/service_name
+        #@ end
       exporters:
         - otlphttp
