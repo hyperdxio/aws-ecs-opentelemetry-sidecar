@@ -4,7 +4,7 @@ This repository contains a Docker image that can be used as a sidecar container
 in an AWS ECS task definition to collect metrics and logs from the application
 container. The sidecar container runs an OpenTelemetry collector that collects
 ECS task and container metrics and logs via Firelens from the application
-container and sends them to [HyperDX](https://hyperdx.io) or another 
+container and sends them to [HyperDX](https://hyperdx.io) or another
 OpenTelemetry collector endpoint.
 
 ## Usage
@@ -71,6 +71,13 @@ is not set on the application container.
 
 To send to a different OpenTelemetry endpoint or collector, set the
 `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable to the desired endpoint.
+
+To disable the default `service.name` being populated with the ECS task, you can
+set `PROCESSOR_RESOURCE_SERVICE_NAME_DISABLED` to `true`.
+
+For advanced configuration you can pass in a custom OpenTelemetry collector
+config via the `MERGED_OTEL_CONFIG` environment variable. This config will be
+merged with the default config.
 
 To debug the generated configuration, set the `DEBUG_GENERATED_OTEL_CONFIG`
 environment variable to `true`.
